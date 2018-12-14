@@ -1,0 +1,34 @@
+syntax = "proto2";
+
+message FFTConfig {
+    optional bool   measureSymbolRate = 1; // default = false
+    optional uint32 powerOfAveraging = 2;  // default = 7
+    optional uint32 scale = 3;             // default = 1
+//    optional uint32 subChannel = 4;        // default = 0
+    optional uint32 halfAuto_flag = 50;    // битовая маска
+    optional uint32 tuner_frequency = 51;              // RF_Frequency           (copy of ChannelConf.tuner.frequency)
+    optional uint32 tuner_filterBand = 52;             // Filter_Band            (copy of ChannelConf.tuner.filterBand)
+    optional uint32 measuredSymbolRate = 56;
+}
+
+message FFTData {
+    optional uint32     frameNumber = 101;
+    optional int32      Pin = 102;
+    optional uint32     centerFrequency = 103;
+    optional uint32     scale = 104;                  
+    optional uint32     lpfCutoffFrequency = 105;
+    optional uint32     measuredSymbolRate = 106;
+    optional uint32     coreVersion = 107;
+    optional uint32     measuredScale = 108;
+    optional bool       measureSymbolRate = 111;	
+    optional uint32     powerOfAveraging = 112;	
+    repeated uint32     samples = 120 [packed=true];
+    optional uint32     leaderStatus = 121;
+    optional uint32     configurationPending = 150;
+    optional uint32     adc_decimationRate = 155;          // Decimation_rate        (copy of ChannelConf.adc.decimationRate)
+//    optional uint32 dem_mode = 157;                    // Dem_Mode               (copy of ChannelConf.dem.mode)
+    optional uint32     fftFs = 160;                     // Fs for fft  
+    optional uint32     channelStatus  = 163;
+    optional uint32     LPFmin = 170;
+    optional uint32     LPFmax = 171;
+}

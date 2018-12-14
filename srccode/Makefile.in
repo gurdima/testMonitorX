@@ -1,0 +1,33 @@
+#Global definitions for project
+
+# PROJECT_BASE := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+
+# UTIL_PATH :=
+
+# KERNELDIR := /usr/src/linux
+
+# include ../include/Makefile.in
+CC	:= $(UTIL_PATH)arm-poky-linux-gnueabi-gcc
+CXX	:= $(UTIL_PATH)arm-poky-linux-gnueabi-g++
+AR	:= $(UTIL_PATH)arm-poky-linux-gnueabi-ar
+RANLIB	:= $(UTIL_PATH)arm-poky-linux-gnueabi-ranlib
+LD	:= $(UTIL_PATH)arm-poky-linux-gnueabi-ld
+STRIP	:= $(UTIL_PATH)arm-poky-linux-gnueabi-strip
+CTAGS	:= ctags
+
+CTAGS_OPT	:= -dtuw
+
+#DEBUG	:= YES
+
+ifeq (YES, $(DEBUG))
+   DEFINES 		:= -DDEBUG
+   OPTIMIZATION		:= 
+   MOD_OPTIMIZATION 	:= 
+else
+   DEFINES 		:=
+   OPTIMIZATION 	:= -O3
+   MOD_OPTIMIZATION	:= -O3
+   
+endif
+
+

@@ -1,0 +1,87 @@
+
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#write 0x02 in      register 0x010 
+testmem -w 0x40000000 0x10000
+testmem -w 0x40000000 0x10010
+testmem -w 0x40000000 0x10002
+
+#close all transaction
+testmem -w 0x40000000 0x00000
+
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#write 0x85 in      register 0x012 
+testmem -w 0x40000000 0x10000
+testmem -w 0x40000000 0x10012
+testmem -w 0x40000000 0x10085
+
+#close all transaction
+testmem -w 0x40000000 0x00000
+
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#write 0xfd in      register 0x060
+testmem -w 0x40000000 0x10000
+testmem -w 0x40000000 0x10060
+testmem -w 0x40000000 0x100fd
+
+#close all transaction
+testmem -w 0x40000000 0x00000
+##
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#write 0x26 in      register 0x070 TEST Pattern enable
+#write 0x22 in      register 0x070 TEST Pattern desable
+testmem -w 0x40000000 0x10000
+testmem -w 0x40000000 0x10070
+testmem -w 0x40000000 0x10026
+
+#close all transaction
+testmem -w 0x40000000 0x00000
+
+##
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#read 0x02 in      register 0x010 
+testmem -w 0x40000000 0x10080
+testmem -w 0x40000000 0x10010
+testmem -w 0x40000000 0x100ff
+testmem -r 0x40000008
+#close all transaction
+testmem -w 0x40000000 0x00000
+
+#close all transaction
+testmem -w 0x40000000 0x00000
+
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#read 0x85 in      register 0x012 
+testmem -w 0x40000000 0x10080
+testmem -w 0x40000000 0x10012
+testmem -w 0x40000000 0x100ff
+testmem -r 0x40000008
+#close all transaction
+testmem -w 0x40000000 0x00000
+
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#read 0xfd in      register 0x060
+testmem -w 0x40000000 0x10080
+testmem -w 0x40000000 0x10060
+testmem -w 0x40000000 0x100ff
+testmem -r 0x40000008
+#close all transaction
+testmem -w 0x40000000 0x00000
+##
+#open transaction cs2
+testmem -w 0x40000000 0x10000
+#read 0x26 in      register 0x070 TEST Pattern enable
+#read 0x22 in      register 0x070 TEST Pattern desable
+testmem -w 0x40000000 0x10080
+testmem -w 0x40000000 0x10070
+testmem -w 0x40000000 0x100ff
+testmem -r 0x40000008
+#close all transaction
+testmem -w 0x40000000 0x00000
+

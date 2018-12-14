@@ -1,0 +1,8 @@
+Common.DeviceName: SR-370
+Misc.Label: Top Gun
+Tuner.AGCMode: 0
+Tuner.FilterBandIndex: 184
+Tuner.Frequency: 1100000
+Tuner.ManualBasebandGain: 7
+Tuner.ManualLBandGain: 44
+Tuner.SpectrumInversion: 0

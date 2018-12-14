@@ -1,0 +1,27 @@
+#! /bin/sh
+
+#This variable is needed to allow tempnam function to work properly even with root fs mounted in ro mode
+
+. /system/init/script_functions
+
+echo "Running initsys"
+
+check_date
+
+check_update
+ 
+if [[ $res = 1 ]]
+then
+    echo "Update system"
+    updatesys
+elif [ ! -e $RUNSYS_DISABLE_FILE ] 
+then
+    echo "Create file $RUNSYS_DISABLE_FILE to disable system initialization."
+    runsys
+else
+    echo "System initialization disabled. Remove $RUNSYS_DISABLE_FILE to enable it."
+fi
+
+sync
+
+echo "Initsys done"

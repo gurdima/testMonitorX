@@ -1,0 +1,200 @@
+#!/bin/bash
+
+#--------------------------------------------------------------#
+#- COMMON DEFINES ---------------------------------------------#
+
+BIT_PATH=/system/bit/
+MODULE_PATH=/system/module/
+RAMDISK_PATH=/system/ramdisk/
+
+M2K_BITFILE_NAME=m2k.bit
+
+PROG_DEV=/dev/xprog
+
+RUNSYS_DISABLE_FILE=/system/init_off
+
+#--------------------------------------------------------------#
+#- FILESYSTEM FUNCTIONALITY -----------------------------------#
+
+MOUNT=/bin/mount
+UMOUNT=/bin/umount
+SYNC=/bin/sync
+
+function make_filesystem_writable()
+{
+    echo "Remounting / in READ/WRITE mode"
+    $MOUNT -o remount,rw /
+}
+
+function make_filesystem_readonly()
+{
+    echo "Remounting / in READ-ONLY mode"
+    $MOUNT -o remount,ro /
+}
+
+function make_filesystem_sync()
+{
+    echo "Synchronizing all filesystems"
+    $SYNC
+}
+
+#--------------------------------------------------------------#
+#- MODULES FUNCTIONALITY --------------------------------------#
+
+MODULE_SUFFIX=.ko
+
+function usage_module()
+{
+    BASENAME=`basename "$0"`
+    cat << INPLACE
+Insert/remove/reinsert $BASENAME driver.
+Usage: $BASENAME insert | remove | reinsert
+INPLACE
+}
+
+# $1==module_name $2==module_options
+function insert_module()
+{
+    MODULE_FILE=$MODULE_PATH$1$MODULE_SUFFIX
+    echo "Inserting $1 module"
+    insmod $MODULE_FILE $2
+}
+
+# $1==module_name
+function remove_module()
+{
+    echo "Removing $1 module"
+    rmmod $1
+}
+
+# $1==action $2==module_name $3==module_options
+function do_module_action()
+{
+    case "$1" in
+    insert)
+        insert_module $2 $3
+    ;;
+    remove)
+        remove_module $2
+    ;;
+    reinsert)
+        remove_module $2
+        insert_module $2 $3
+    ;;
+    *)
+        usage_module
+    ;;
+    esac
+}
+
+#--------------------------------------------------------------#
+#- FPGA LOAD FUNCTIONALITY ------------------------------------#
+
+# $1==chip_no $2==prog_pin $3==init_pin $4==done_pin $5==bit_file_dir $6==bit_file
+function load_fpga()
+{
+    BIT_FILE=$5/$6
+    COMPRESSED_BIT_FILE=$BIT_FILE.gz
+
+    fctl --sc --channel $1
+    fctl --sx --prog $2 --init $3 --done $4
+
+    if [ -f $BIT_FILE ]
+    then
+        echo "Loading $BIT_FILE"
+        dd if=$BIT_FILE of=$PROG_DEV >& /dev/null
+    else
+        echo "Loading $COMPRESSED_BIT_FILE"
+        gunzip -c $COMPRESSED_BIT_FILE | dd of=$PROG_DEV >& /dev/null
+    fi
+
+    fctl --rs
+}
+#----------------------CHECK_UPDATE---------------------------#
+
+function check_update()
+{
+        echo "Check update"
+        count=$(ls -l /system/update | grep ^- | wc -l)
+
+        ctci=$(find /system/update -name '*.ctci' -exec basename {} \; | wc -l)
+
+        up=$(find /system/update -name 'update_confirmed' -exec basename {} \; | wc -l)
+
+        if [[ $count = 0 ]]
+        then
+            echo "dir update empty"
+            res=0
+        elif [[ $ctci = 0 ]]
+        then
+            echo "Not ctci file"
+            rm -rf /system/update/*
+            res=0
+        elif [[ $up = 0 ]]
+        then
+            echo "Update_confirmed missing"
+            rm -rf /system/update/*
+            res=0
+        else
+            echo "Success"
+            res=1
+        fi
+}
+
+#---------------------Create_MD5---------------------------------#
+
+function create_md5()
+{
+    md=$(md5sum /tmp/install.tgz | awk '{print $1}')
+    echo "$md  install.tgz" > /tmp/md5.md5
+}
+
+function check_date()
+{
+    date=$(date | awk '{print $6}')
+    if [[ $date -lt 2013 ]]
+    then
+        date -s 010100002014
+        hwclock -w
+    fi
+}
+
+# Function to select proper M2K bit file revision by creating symbolic linc to it in ramdisk.
+# All applications that need bit file for their operation will access it via this link.
+function select_M2K_bitfile()
+{
+    echo "Checking gpio #75 to select M2K bit-file revision"
+    gpioctl -i 75
+    VAL=$(gpioctl -r 75)
+    if [[ $VAL = 0 ]]
+    then
+        bit_file_name=$M2K_BITFILE_NAME
+    else
+        bit_file_name=m2k_rev2.bit
+    fi
+    
+    if [ -e $BIT_PATH$bit_file_name ]
+    then
+        echo "Making link: $RAMDISK_PATH$M2K_BITFILE_NAME --> $BIT_PATH$bit_file_name"
+        ln -s $BIT_PATH$bit_file_name $RAMDISK_PATH$M2K_BITFILE_NAME
+    fi
+
+    if [ -e $BIT_PATH$bit_file_name.gz ]
+    then
+        echo "Making link: $RAMDISK_PATH$M2K_BITFILE_NAME.gz --> $BIT_PATH$bit_file_name.gz"
+        ln -s $BIT_PATH$bit_file_name.gz $RAMDISK_PATH$M2K_BITFILE_NAME.gz
+    fi
+}
+
+#---------------------Reset_PHY----------------------------------#
+
+function reset_phy()
+{
+    /system/bin/memctl -w -a 0xc200013 -v 0x11
+    /system/bin/memctl -w -a 0xc200013 -v 0x10
+    /system/bin/memctl -w -a 0xc200013 -v 0x1
+
+    /system/bin/memctl -w -a 0xc200014 -v 0x11
+    /system/bin/memctl -w -a 0xc200014 -v 0x10
+    /system/bin/memctl -w -a 0xc200014 -v 0x1
+}

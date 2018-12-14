@@ -1,0 +1,50 @@
+#!/bin/bash
+
+export SNMPCONFPATH=/system/etc
+
+. /system/init/script_functions
+
+echo "Running runsys"
+
+
+
+# /system/init/mntramdisk mount  # Mount ramdisk
+# echo "Checking mutable.cfg"
+
+# /system/init/checkConfigConsistency
+
+# /system/init/moveMutable load
+
+# make_filesystem_readonly  # Remount root in readonly mode
+
+# Insert all needed modules
+# /system/init/gpiomod insert
+# /system/init/memmod  insert
+# /system/init/ssp     insert
+# /system/init/xldr8   insert
+# /system/init/adc2spi insert
+
+# /system/init/gpioconfig # Setup GPIO pins
+
+# select_M2K_bitfile      # Select M2K bitfile revision
+# /system/init/loadM2K    # Load M2K FPGA
+# reset_phy               # Reset PHY module, needed to feed some FPGA modules with clocks (rev. 2 only)
+
+# /system/init/monitor start
+# /system/init/http start
+
+echo "runing HTTPServer"
+
+
+BIN_NAME=HTTPServer
+BIN_PATH=/system/bin/
+$BIN_PATH$BIN_NAME &
+
+MONX_NAME=MonitorX
+$BIN_PATH$MONX_NAME &
+
+echo "runsys done"
+
+
+# touch /run/runsys
+

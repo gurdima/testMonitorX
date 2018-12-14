@@ -1,0 +1,35 @@
+# setup of registers  Header of 10ge frames
+#long mac addreses split on two registers, low order follow first
+
+#ADDR_UDPH_UDPH_MAC_ID_THIS1 = 32'h00000200;
+testmem -w 0x40000800 0x8595013c
+#ADDR_UDPH_UDPH_MAC_ID_THIS2 = 32'h00000201; 
+testmem -w 0x40000804 0xd8d3
+#ADDR_UDPH_UDPH_MAC_ID_OTHER1 = 32'h00000202; 
+testmem -w 0x40000808 0xe55a70cf
+#ADDR_UDPH_UDPH_MAC_ID_OTHER2 = 32'h00000203;
+testmem -w 0x4000080c 0x080d
+#ADDR_UDPH_UDPH_IP_CRC_16 = 32'h00000204;
+testmem -w 0x40000810 0xb112
+#ADDR_UDPH_UDPH_IP_SOURCE = 32'h00000205; 
+testmem -w 0x40000814 0xc0a81452
+#ADDR_UDPH_UDPH_IP_DESTINATION = 32'h00000206;
+testmem -w 0x40000818 0xc0a81416
+#ADDR_UDPH_UDPH_SOURCE_PORT = 32'h00000207; 
+testmem -w 0x4000081c 0x13ec
+#ADDR_UDPH_UDPH_DESTINATION_PORT = 32'h00000208; 
+testmem -w 0x40000820 0xf930
+#ADDR_UDPH_UDPH_DATA_PACKETS = 32'h00000209; 
+testmem -w 0x40000824 0x0000000
+testmem -w 0x40000824 0x80000000
+
+testmem -r 0x40000800
+testmem -r 0x40000804
+testmem -r 0x40000808
+testmem -r 0x4000080c
+testmem -r 0x40000810
+testmem -r 0x40000814
+testmem -r 0x40000818
+testmem -r 0x4000081c
+testmem -r 0x40000820
+testmem -r 0x40000824

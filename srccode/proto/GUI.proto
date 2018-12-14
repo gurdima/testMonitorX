@@ -1,0 +1,129 @@
+syntax = "proto2";
+
+package GUI;
+
+message TunerStat 
+{
+    optional  uint32 present                       = 1;     // s1.3.1. "Tuner Status"        // 0: Error, 1: Ok // search: TunerStat = new GUI_TunerStat   
+    optional  uint32 temperature                   = 5;     // s1.3.9. "Temperature, ∞C"     // RCV-30: показать в \"Receiver"\"Tuner"\
+    optional  uint32 endOfSearch                   = 6; // s1.3.1. (RCV-30)
+    optional  uint32 lock                          = 7;     // s1.3.2. "AGC"                 // 0: Unlock, 1: Lock, 2: Manual Gain Control
+    optional  uint32 agcError                      = 8;     // s1.3.3. "Pin, dBm"            // val or "Input Level Too Low" or "Input Level Too High"
+//!!!переименовать "referenceVoltage" в "detectVoltage"    // ќЎ»Ѕ ј в названии пол€! Ёто Urms, а не Uref
+    optional  uint32 detectVoltage                 = 9;     // s1.3.4. "Urms, mV"
+    optional  float  lBandGain                     = 10;    // GC1              // RCV-30: показать // ?! ChannelConf.tuner.manualLBandGain
+    optional  uint32 baseBandGain                  = 11;    // GC2              // RCV-30: показать // ?! ChannelConf.tuner.manualBaseBandGain
+    optional  float  pin                           = 12;    // s1.3.3. "Pin, dBm"            // val or "Input Level Too Low" or "Input Level Too High"
+    optional  uint32 lpfCutoffFrequency            = 13;    // s1.3.6. "Filter Band, MHz"   //? в конфе стоит "Auto", а здесь фактическое удвоеное
+    optional  bool   agcTooLow                     = 15;    // s1.3.3. "Pin, dBm"            // val or "Input Level Too Low" or "Input Level Too High"
+    optional  bool   agcTooHigh                    = 16;    // s1.3.3. "Pin, dBm"            // val or "Input Level Too Low" or "Input Level Too High"
+};
+
+/*
+- убрать:
+!!!
+message MiscChannelConf
+{
+    optional  string label = 1;
+};
+*/
+
+message DeviceSettings
+{
+    optional  int32  saveConfiguration = 1;
+    optional  int32  reset             = 2;  
+
+/*
+- убрать 2 параметра:
+!!!
+    optional  uint32 dateAndTime       = 4;
+    optional  string deviceName        = 3;
+*/
+};
+
+message AGCTunerConf
+{
+    optional  uint32 frequency          = 1; // RF Frequency, kHz.  Not Convert Hz to kHz!                    
+    optional  uint32 filterBand         = 2; // index of value!  
+    optional  uint32 spectrumInversion  = 4; // new 02dec2017:"Spectrum Inversion" = "Disable", "Enable"
+    optional  uint32 agcMode            = 3; // Gain Control Mode (Auto Manual One Shot)    !!! передавать по SPI через AGC_CTR.AGC_mode 
+    optional  uint32 manualLBandGain    = 5; // L-Band Gain, dB	1Е70 (default=45.8) // GC1
+    optional  uint32 manualBaseBandGain = 6; // Baseband Gain, dB 0..15 (default=7) // GC2
+}; // message AGCTunerConf
+
+message EEPROM
+{
+    optional uint32	                    eepProject          = 1; // addr = 0x48  = 'A','S' or 'W'
+    optional uint32	                    eepReference        = 2; // addr = 0x49   default = 0x8CBA58  (25999960Hz)
+	optional uint32	                    eepSerialNumber     = 3; // addr = 0x4C   default = 0x0000
+	optional uint32	                    eepRelease          = 4; // addr = 0x4E   default = 0xF311    (11110.0110.0010001 = 30.06.17)
+	optional uint32	                    eepVersionNumber    = 5; // addr = 0x50   default = 0x34
+	optional uint32	                    eepADRFDAC          = 6; // addr = 0x51   default = 0xD76969  (215,105,105)
+	optional uint32	                    eepAGCCTR           = 7; // addr = 0x54   default = 0x2100    (0010.0001.0000.0000) 
+	optional uint32	                    eepADRFREG          = 8; // addr = 0x56   default = 0x00F8    (0000.0000.1111.1000)
+//!!!+ передавать по SPI при sendTSFPflag=0x80, после чего флаг сбросить
+    repeated uint32                     eepArray16 = 9 [packed=true];// addr = 0x48   default = 0x57.58BA8C.0000.11F3.34.6969D7.0021.F800
+}; // message EEPROM
+
+message ChannelConf
+{
+    optional GUI.AGCTunerConf                   tuner           = 1;
+//!!!- убрать:
+    //  optional GUI.MiscChannelConf                misc            = 3;    
+
+    optional uint32 sendSPIflag = 9;      // 0 - не записывать; 0x1 - записать AGC & ADRF; 0x80 - запиcать 16 байт EEEPROM
+
+    optional uint32        AGCCTR     = 10; //  addr = 0x5C     R/W	(2 байта)
+    optional uint32        AGCUref    = 11; //  addr = 0x5E     R/W	(2 байта) default = 800 = 0x0320 !!! из кода, а не из EEPROM
+    optional uint32        ADRFREG    = 12; //  addr = 0x16     R/W	(2 байта)
+    optional uint32        ADRFDAC    = 13; //  addr = 0x1C     R/W	(4 байта - NA, VGN1, VGN2, VGN3)
+    optional GUI.EEPROM  eeprom       = 14;
+
+    optional uint32    decimationRate = 15;   
+
+};
+
+message DeviceInfo
+{
+    optional  int32                cpuIdle              = 1;
+    optional  uint32               configurationPending = 2; // true if device configuration process is pending, false otherwise
+    optional  string               installVersion       = 3; // "Software Version"
+    optional  string               FPGAVersion          = 4; // old name - m2kFPGAVersion
+//!!!- убрать:
+    //    optional  string               deviceName           = 7; // copy from DeviceSettings.deviceName (for "Device Configuration"."Device Name")
+//!! переименовать "release" в "calibrationDate"
+    optional  string   calibrationDate      = 8;  // EEPROM.Release:     addr = 0x4E, default = 0xF311 (30.06.17)
+    optional  string   softVersion          = 9;  // TSFP_version:       addr = 0x38, default = "W-04.02/11.12.17"      // s1.3.15. "RFL Software Version"
+    optional  uint32   referenceFrequency   = 10; // Reference:          addr = 0x28, default = 0x018CBA58 (25999960Hz) 
+    optional  uint32   serialNumber         = 11; // EEPROM.Serial:      addr = 0x4C  default = 0x0000
+// !!!переименовать "type" на "hwRevision"
+    optional  uint32   hwRevision           = 12; // EEPROM.CK.VersNumb: addr = 0x50, default = 0x34                    // s1.3.8. "HW Revision"
+                                                                //  PDF     CVI     TSFP            MCU
+    optional  uint32               LPFmin               = 20;   //  40      40      40              32.08           (MHz)       lpf=46  
+    optional  uint32               LPFmax               = 21;   //  124     207,2   200             207.2           (MHz)       lpf=246 
+    optional  uint32               Fmin                 = 22;   //  925     925     0               0               (MHz)       default:1220
+    optional  uint32               Fmax                 = 23;   //  2250    2250    4294.967295     4294.967295     (MHz)
+    optional  uint32               ManGC1min            = 24;   //  5       354     354             354                         2700mV
+    optional  uint32               ManGC1max            = 25;   //  78      32      32              32                          500mV
+};
+
+message ChannelStat
+{
+    optional  GUI.TunerStat                tuner                = 1;
+    repeated  uint32                       ethernetLinkStatus   = 11; // .ethernetLinkStatus[ChanNumber] - version 2GE
+    repeated  uint32                       totalChannelSpeed    = 12; // .totalChannelSpeed[ChanNumber] - version 2GE
+    optional  uint32                       configurationPending = 13; // true if device configuration process is pending, false otherwise
+    optional  int32                        cpuIdle              = 14;
+//- убрать поле:
+    //    optional  uint32                       dateAndTime          = 16;
+    optional  uint32                       leaderStatus         = 15;    
+    optional  uint32                       channelStatus        = 18;    
+// not used  repeated  GUI.ChannelConnectionsInfo   sessions               = 19; 
+// new 13/12/17    repeated  GUI.NetConnectionsInfo       connection = 19;   
+    optional  uint32                       destinationIPaddr    = 20;
+    optional  uint32                       destinationPort      = 21;
+    optional  uint32                       numberDataRequested  = 22; // mul 8198
+    optional  uint32                       fftFs                = 23;
+    optional  GUI.ChannelConf       ChanConf    = 101; // передаетс€ не каждую секунду, а только при обновлении
+    optional  GUI.DeviceInfo        DevInfo     = 102; // передаетс€ не каждую секунду, а только при обновлении
+};

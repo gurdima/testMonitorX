@@ -1,0 +1,6 @@
+syntax = "proto2";
+
+message Settings {
+    optional bool leaderRequest = 1;
+    optional uint32 requstPeriod = 2;
+}
